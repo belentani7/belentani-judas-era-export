@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BELENTANI // JUDAS ERA - OMEGA DEFINITIVE v7.0</title>
+<meta name="description" content="BELENTANI // JUDAS ERA. Archivo artístico, sonic archive, portal de fragmentos y Studio de herramientas IA." />
+<meta name="theme-color" content="#050505" />
+<link rel="icon" href="/logo.png" type="image/png" />
+<meta property="og:title" content="BELENTANI // JUDAS ERA - OMEGA DEFINITIVE v7.0" />
+<meta property="og:description" content="Archivo artístico, sonic archive, portal de fragmentos y Studio de herramientas IA." />
+<meta property="og:image" content="/og.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Cinzel+Decorative:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+:root {
+--bg-void: #050505;
+--red-blood: #ff003c;
+--red-glow: rgba(255, 0, 60, 0.8);
+--text-main: #ffffff;
+--text-dim: rgba(255, 255, 255, 0.5);
+--term-green: #00ff41;
+--gold-sacred: #ffd700;
+--cyan-aether: #00ffff;
+--purple-void: #b026ff;
+--font-display: 'Orbitron', sans-serif;
+--font-fantasy: 'Cinzel Decorative', serif;
+--font-ui: 'Chakra Petch', sans-serif;
+--font-mono: 'JetBrains Mono', monospace;
+--border-glass: rgba(255, 0, 60, 0.4);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { width: 100%; background-color: var(--bg-void); color: var(--text-main); font-family: var(--font-ui); cursor: none; overflow-x: hidden; line-height: 1.6; }
+
+/* BOOT SEQUENCE */
+#boot-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; font-family: var(--font-mono); color: var(--term-green); font-size: 14px; text-align: center; transition: opacity 1s; }
+#boot-screen .boot-log { width: 400px; height: 150px; overflow: hidden; text-align: left; margin-bottom: 20px; opacity: 0.8; }
+#boot-screen .boot-bar { width: 300px; height: 2px; background: rgba(0, 255, 65, 0.2); position: relative; overflow: hidden; }
+#boot-screen .boot-bar::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: var(--term-green); box-shadow: 0 0 10px var(--term-green); animation: bootLoad 3s linear forwards; }
+@keyframes bootLoad { to { width: 100%; } }
+
+/* HYPERREAL CURSOR */
+.cursor-dot, .cursor-outline, .cursor-cross, .cursor-box { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); will-change: transform; }
+.cursor-dot { width: 4px; height: 4px; background-color: #fff; box-shadow: 0 0 10px #fff; z-index: 10000; }
+.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--red-blood); transition: width 0.3s, height 0.3s, border-color 0.3s, opacity 0.3s; mix-blend-mode: difference; }
+.cursor-cross { width: 20px; height: 20px; z-index: 9998; }
+.cursor-cross::before, .cursor-cross::after { content: ''; position: absolute; background: var(--red-blood); box-shadow: 0 0 8px var(--red-blood); }
+.cursor-cross::before { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
+.cursor-cross::after { left: 50%; top: 0; height: 100%; width: 1px; transform: translateX(-50%); }
+.cursor-box { width: 0; height: 0; border: 1px dashed var(--gold-sacred); opacity: 0; transition: width 0.2s, height 0.2s, opacity 0.2s; }
+.cursor-box.active { width: 80px; height: 40px; opacity: 1; }
+.cursor-outline.hover { opacity: 0; }
+
+/* WEBGL & ATMOSPHERE */
+#webgl-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+.vignette { position: fixed; inset: 0; background: radial-gradient(circle at center, transparent 15%, rgba(0,0,0,0.95) 100%); z-index: 1; pointer-events: none; }
+.grain { position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0.05; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+.collapse-overlay { position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,0,60,0.2), rgba(255,0,60,0.2) 2px, transparent 2px, transparent 4px); z-index: 9000; pointer-events: none; display: none; mix-blend-mode: exclusion; }
+.omega-overlay { position: fixed; inset: 0; background: radial-gradient(circle, rgba(255,215,0,0.4), transparent 70%); z-index: 9001; pointer-events: none; display: none; mix-blend-mode: overlay; }
+body.collapse-mode { animation: collapseShake 0.05s infinite; filter: hue-rotate(90deg) contrast(1.5); }
+body.collapse-mode .collapse-overlay { display: block; }
+body.omega-mode { filter: brightness(1.5) contrast(1.2) saturate(2); }
+body.omega-mode .omega-overlay { display: block; }
+@keyframes collapseShake { 0%, 100% { transform: translate(0); } 25% { transform: translate(-5px, 3px); } 75% { transform: translate(5px, -3px); } }
+
+/* HUD - AETHERPUNK INTERFACE */
+.hud-layer { position: fixed; inset: 0; z-index: 100; pointer-events: none; padding: 30px 40px; display: flex; flex-direction: column; justify-content: space-between; }
+.hud-top, .hud-bottom { display: flex; justify-content: space-between; align-items: flex-start; }
+.hud-bottom { align-items: flex-end; }
+.hud-element { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; line-height: 1.8; }
+.hud-element span { color: var(--red-blood); text-shadow: 0 0 5px var(--red-blood); }
+.hud-logo { font-family: var(--font-fantasy); font-size: 36px; font-weight: 900; color: #fff; text-shadow: 0 0 20px var(--red-glow); letter-spacing: 4px; pointer-events: auto; cursor: none; text-decoration: none; }
+.hud-logo span { color: var(--red-blood); }
+.glass-panel { background: linear-gradient(135deg, rgba(20,0,10,0.8), rgba(0,0,0,0.6)); backdrop-filter: blur(15px); border: 1px solid var(--border-glass); padding: 15px 20px; pointer-events: auto; box-shadow: 0 0 30px rgba(255,0,60,0.1), inset 0 0 20px rgba(0,0,0,0.5); position: relative; clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+.glass-panel::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 12px; background: var(--red-blood); clip-path: polygon(0 0, 100% 0, 0 100%); }
+.glass-panel::after { content: ''; position: absolute; bottom: 0; right: 0; width: 4px; height: 12px; background: var(--red-blood); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.live-indicator { display: flex; align-items: center; gap: 8px; }
+.live-dot { width: 8px; height: 8px; background: var(--red-blood); border-radius: 50%; box-shadow: 0 0 15px var(--red-blood); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.8); } }
+.nav-dots { display: flex; gap: 15px; }
+.nav-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 50%; transition: all 0.3s; cursor: none; pointer-events: auto; }
+.nav-dot.active { background: var(--red-blood); box-shadow: 0 0 15px var(--red-blood); width: 30px; border-radius: 4px; }
+
+/* SECCIONES GENERALES */
+section { position: relative; z-index: 5; }
+.section { min-height: 100vh; padding: 120px 40px; position: relative; display: flex; flex-direction: column; justify-content: center; }
+.section-title { font-family: var(--font-fantasy); font-size: clamp(40px, 7vw, 90px); font-weight: 900; text-align: center; margin-bottom: 20px; color: transparent; -webkit-text-stroke: 1px var(--text-dim); opacity: 0; text-shadow: 0 0 40px rgba(0,0,0,0.8); letter-spacing: 4px; }
+.section-title span { color: #fff; -webkit-text-stroke: 0; text-shadow: 0 0 30px var(--red-glow); font-style: italic; }
+.section-subtitle { text-align: center; font-family: var(--font-mono); font-size: 13px; color: var(--red-blood); letter-spacing: 4px; margin-bottom: 60px; opacity: 0; text-shadow: 0 0 10px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; gap: 15px; }
+.section-subtitle::before, .section-subtitle::after { content: '◆'; font-size: 8px; color: var(--gold-sacred); }
+.cta-btn { position: relative; padding: 20px 60px; background: transparent; border: 1px solid var(--red-blood); color: var(--text-main); font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; cursor: none; overflow: hidden; transition: all 0.4s; opacity: 0; transform: translateY(20px); pointer-events: auto; align-self: center; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+.cta-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--red-blood); transition: left 0.4s; z-index: -1; }
+.cta-btn:hover { color: #fff; box-shadow: 0 0 60px var(--red-glow); border-color: #fff; }
+.cta-btn:hover::before { left: 0; }
+
+/* HOME */
+#home { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 20px; }
+.hero-pre-title { font-family: var(--font-mono); font-size: 14px; color: var(--text-dim); letter-spacing: 12px; margin-bottom: 20px; opacity: 0; transform: translateY(20px); text-shadow: 0 0 10px rgba(0,0,0,1); border-bottom: 1px solid var(--red-blood); padding-bottom: 10px; }
+.hero-title { font-family: var(--font-fantasy); font-size: clamp(80px, 18vw, 280px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; margin-bottom: 30px; color: #fff; text-shadow: 0 0 40px var(--red-glow), 0 0 100px rgba(255,0,60,0.2); opacity: 0; transform: translateY(50px); font-style: italic; }
+.hero-title span { color: var(--red-blood); }
+.hero-subtitle { font-family: var(--font-ui); font-weight: 300; font-size: 17px; color: var(--text-dim); max-width: 600px; margin-bottom: 50px; opacity: 0; transform: translateY(20px); text-shadow: 0 0 10px rgba(0,0,0,1); }
+
+/* THE ARTIST */
+.narrative-block { max-width: 900px; margin: 0 auto; text-align: center; }
+.narrative-text { font-family: var(--font-ui); color: var(--text-dim); font-size: 17px; margin-bottom: 40px; line-height: 1.8; }
+.narrative-text strong { color: var(--text-main); font-weight: 700; }
+.archetype-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; max-width: 1400px; margin: 60px auto 0; }
+.archetype-card { background: linear-gradient(135deg, rgba(10,0,0,0.8), rgba(20,0,5,0.4)); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); padding: 30px; text-align: center; transition: all 0.4s; cursor: none; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); }
+.archetype-card:hover { border-color: var(--red-blood); transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,0,60,0.2); }
+.archetype-icon { font-size: 48px; margin-bottom: 20px; }
+.archetype-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; text-transform: uppercase; }
+.archetype-role { font-family: var(--font-mono); font-size: 10px; color: var(--red-blood); letter-spacing: 2px; margin-bottom: 15px; }
+.archetype-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+/* MUSIC */
+.music-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; max-width: 1400px; margin: 0 auto; }
+.track-card { background: linear-gradient(135deg, rgba(10,0,0,0.8), rgba(20,0,5,0.4)); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); padding: 25px; transition: all 0.4s; cursor: none; clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
+.track-card:hover { border-color: var(--red-blood); transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,0,60,0.2); }
+.track-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.track-icon { width: 50px; height: 50px; background: linear-gradient(135deg, var(--red-blood), #400000); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 0 15px var(--red-glow); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+.track-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
+.track-platform { font-family: var(--font-mono); font-size: 10px; color: var(--red-blood); letter-spacing: 2px; margin-top: 2px; }
+.track-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 20px; }
+.track-launch { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--red-blood); color: var(--red-blood); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 2px; cursor: none; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.track-launch:hover { background: var(--red-blood); color: #fff; box-shadow: 0 0 15px var(--red-glow); }
+.track-launch::after { content: '↗'; font-size: 14px; }
+
+/* JUDAS ERA */
+.judas-phases { max-width: 900px; margin: 0 auto; }
+.phase-card { background: linear-gradient(135deg, rgba(20,0,10,0.8), rgba(0,0,0,0.6)); backdrop-filter: blur(15px); border: 1px solid var(--border-glass); padding: 35px; margin: 25px 0; text-align: left; clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); transition: all 0.4s; }
+.phase-card:hover { border-color: var(--gold-sacred); box-shadow: 0 0 40px rgba(255,215,0,0.2); }
+.phase-title { font-family: var(--font-display); color: var(--gold-sacred); margin-bottom: 15px; font-size: 16px; letter-spacing: 2px; }
+.phase-text { color: var(--text-dim); font-size: 15px; line-height: 1.8; }
+
+/* PORTAL */
+.diamond-scene { height: 90vh; position: relative; margin: 40px 0; }
+#diamonds-canvas { width: 100%; height: 100%; display: block; }
+.rune-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 600px; pointer-events: none; }
+.rune-svg { width: 100%; height: 100%; animation: rotateSlow 60s linear infinite; opacity: 0.4; }
+.rune-svg.reverse { animation: rotateSlow 80s linear infinite reverse; width: 80%; height: 80%; top: 10%; left: 10%; position: absolute; opacity: 0.2; }
+@keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ART GALLERY */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1600px; margin: 0 auto; }
+.gallery-item { position: relative; overflow: hidden; border: 1px solid rgba(255,0,60,0.3); cursor: none; transition: all 0.5s; aspect-ratio: 2/3; background: #000; }
+.gallery-item::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%); z-index: 1; opacity: 0; transition: opacity 0.4s; }
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s; }
+.gallery-item:hover { border-color: var(--red-blood); box-shadow: 0 0 60px rgba(255,0,60,0.4); transform: translateY(-10px); }
+.gallery-item:hover::before { opacity: 1; }
+.gallery-item:hover img { transform: scale(1.1); }
+.gallery-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 30px; z-index: 2; opacity: 0; transform: translateY(20px); transition: all 0.4s; }
+.gallery-item:hover .gallery-info { opacity: 1; transform: translateY(0); }
+.gallery-title { font-family: var(--font-fantasy); font-size: 22px; color: #fff; margin-bottom: 10px; }
+.gallery-desc { font-family: var(--font-mono); font-size: 11px; color: rgba(255,255,255,0.7); letter-spacing: 1px; }
+
+/* CONTACT */
+.contact-container { max-width: 800px; margin: 0 auto; text-align: center; }
+.contact-email { text-decoration: none; color: var(--text-main); font-family: var(--font-display); font-size: 20px; border: 1px solid var(--red-blood); padding: 25px 50px; display: inline-block; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px); background: rgba(255,0,60,0.1); transition: all 0.3s; margin: 30px 0; }
+.contact-email:hover { background: var(--red-blood); color: #fff; box-shadow: 0 0 30px var(--red-glow); }
+.social-links { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
+.social-link { padding: 15px 30px; background: linear-gradient(135deg, rgba(20,0,10,0.8), rgba(0,0,0,0.6)); backdrop-filter: blur(15px); border: 1px solid var(--border-glass); color: var(--text-main); text-decoration: none; font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; transition: all 0.3s; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+.social-link:hover { border-color: var(--red-blood); box-shadow: 0 0 20px rgba(255,0,60,0.3); transform: translateY(-3px); }
+
+/* STUDIO */
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1600px; margin: 0 auto; }
+.tool-card { background: linear-gradient(135deg, rgba(10,0,0,0.8), rgba(20,0,5,0.4)); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); padding: 24px; cursor: none; transition: all 0.4s; position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
+.tool-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(250px circle at var(--mouse-x) var(--mouse-y), rgba(255, 0, 60, 0.15), transparent 40%); opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+.tool-card::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent); transform: rotate(45deg) translateY(-100%); transition: transform 0.6s; pointer-events: none; }
+.tool-card:hover::before { opacity: 1; }
+.tool-card:hover::after { transform: rotate(45deg) translateY(100%); }
+.tool-card:hover { border-color: var(--red-blood); transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,0,60,0.2); }
+.tool-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,0,60,0.1); padding-bottom: 15px; }
+.tool-icon { width: 45px; height: 45px; background: linear-gradient(135deg, var(--red-blood), #400000); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 15px var(--red-glow); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+.tool-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-main); text-transform: uppercase; }
+.tool-id { font-family: var(--font-mono); font-size: 9px; color: var(--red-blood); letter-spacing: 2px; margin-top: 2px; }
+.tool-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 20px; font-family: var(--font-ui); }
+.tool-launch { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--red-blood); color: var(--red-blood); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 2px; cursor: none; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.tool-launch:hover { background: var(--red-blood); color: #fff; box-shadow: 0 0 15px var(--red-glow); }
+.tool-launch::after { content: '↗'; font-size: 14px; }
+
+/* AI CHAT */
+.ai-chat { position: fixed; bottom: 30px; right: 30px; width: 420px; max-height: 650px; background: linear-gradient(135deg, rgba(10,0,5,0.95), rgba(0,0,0,0.85)); backdrop-filter: blur(30px); border: 1px solid var(--red-blood); z-index: 1000; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px var(--red-glow); transition: all 0.4s; pointer-events: auto; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); }
+.ai-chat.minimized { height: 60px; max-height: 60px; }
+.chat-header { padding: 18px 20px; background: linear-gradient(90deg, rgba(255,0,60,0.2), transparent); border-bottom: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center; cursor: none; }
+.chat-title { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+.chat-messages { flex: 1; padding: 20px; overflow-y: auto; max-height: 450px; scrollbar-width: thin; scrollbar-color: var(--red-blood) transparent; }
+.ai-chat.minimized .chat-messages, .ai-chat.minimized .chat-input-area { display: none; }
+.message { margin: 12px 0; padding: 12px 15px; max-width: 85%; font-size: 13px; line-height: 1.5; animation: msgIn 0.4s; position: relative; font-family: var(--font-ui); backdrop-filter: blur(5px); }
+@keyframes msgIn { from { opacity: 0; transform: translateY(10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.message.ai { background: rgba(255, 0, 60, 0.05); border-left: 2px solid var(--red-blood); margin-right: auto; color: #ddd; border-radius: 0 8px 8px 8px; }
+.message.user { background: rgba(255, 215, 0, 0.05); border-right: 2px solid var(--gold-sacred); margin-left: auto; text-align: right; color: #fff; border-radius: 8px 0 0 8px; }
+.message.system { background: rgba(0, 255, 65, 0.05); border: 1px dashed var(--term-green); max-width: 100%; font-family: var(--font-mono); font-size: 11px; color: var(--term-green); text-align: center; border-radius: 4px; text-shadow: 0 0 5px var(--term-green); }
+.message .meta { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; margin-bottom: 6px; opacity: 0.7; }
+.message.ai .meta { color: var(--red-blood); } .message.user .meta { color: var(--gold-sacred); }
+.chat-input-area { padding: 15px 20px; border-top: 1px solid var(--border-glass); display: flex; gap: 10px; background: rgba(0,0,0,0.5); }
+.chat-input { flex: 1; padding: 12px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); font-family: var(--font-mono); font-size: 12px; outline: none; transition: 0.3s; }
+.chat-input:focus { border-color: var(--red-blood); box-shadow: inset 0 0 10px rgba(255,0,60,0.2); background: rgba(255,0,60,0.05); }
+.chat-send { padding: 12px 20px; background: var(--red-blood); border: none; color: #fff; cursor: none; font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 2px; transition: 0.3s; }
+.chat-send:hover { background: #fff; color: var(--red-blood); box-shadow: 0 0 20px var(--red-glow); }
+.typing-indicator { display: flex; gap: 4px; padding: 5px 0; }
+.typing-indicator span { width: 6px; height: 6px; background: var(--red-blood); border-radius: 50%; animation: typing 1s infinite; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; } .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+/* MODALS */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); z-index: 2000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s; }
+.overlay.active { display: flex; opacity: 1; }
+.overlay-content { max-width: 800px; width: 90%; max-height: 85vh; background: linear-gradient(135deg, rgba(20,0,5,0.95), rgba(0,0,0,0.9)); backdrop-filter: blur(30px); border: 1px solid var(--red-blood); padding: 40px; overflow-y: auto; position: relative; box-shadow: 0 0 60px var(--red-glow); clip-path: polygon(30px 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%, 0 30px); }
+.overlay-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: var(--red-blood); border: none; color: #fff; font-size: 20px; cursor: none; transition: all 0.3s; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.overlay-close:hover { background: #fff; color: var(--red-blood); transform: rotate(90deg) scale(1.1); }
+
+/* FLOATING TERMINAL */
+.floating-terminal { position: fixed; bottom: 100px; left: 40px; width: 350px; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); padding: 20px; z-index: 50; opacity: 0; transform: translateX(-50px); pointer-events: none; box-shadow: 0 0 30px rgba(0,0,0,0.5); clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%); }
+.terminal-body { font-family: var(--font-mono); font-size: 12px; color: var(--term-green); line-height: 1.8; max-height: 150px; overflow-y: auto; text-shadow: 0 0 5px var(--term-green); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: var(--red-blood); }
+@media (max-width: 1024px) { .grid-4, .gallery-grid, .archetype-grid { grid-template-columns: repeat(2, 1fr); } .floating-terminal { display: none; } .rune-circle { width: 300px; height: 300px; } }
+@media (max-width: 768px) { .nav-dots, .floating-terminal { display: none; } .section { padding: 80px 20px; } .cursor-dot, .cursor-outline, .cursor-cross, .cursor-box { display: none; } body { cursor: auto; } .grid-4, .gallery-grid, .archetype-grid, .music-grid { grid-template-columns: 1fr; } .hud-layer { padding: 14px 16px; } .hud-top > .hud-element.glass-panel { display: none; } .hud-logo { font-size: 26px; letter-spacing: 2px; } .hero-pre-title { font-size: 10px; letter-spacing: 6px; } .hero-title { font-size: clamp(42px, 13vw, 72px); letter-spacing: -4px; line-height: 0.95; } .hero-subtitle { font-size: 14px; max-width: 320px; margin-bottom: 32px; } .ai-chat { width: calc(100% - 20px); right: 10px; bottom: 10px; max-height: 36vh; } .ai-chat .chat-messages { max-height: 16vh; } .chat-header { padding: 14px; } }
+</style>
+</head>
+<body>
+
+<!-- BOOT SEQUENCE -->
+<div id="boot-screen">
+<div class="boot-log" id="bootLog"></div>
+<div class="boot-bar"></div>
+<div style="margin-top: 10px; font-size: 10px; letter-spacing: 2px;">JUDAS_OS // INITIALIZING OMEGA CORE v7.0</div>
+</div>
+
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+<div class="cursor-cross"></div>
+<div class="cursor-box"></div>
+
+<canvas id="webgl-canvas" aria-hidden="true"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+<div class="collapse-overlay"></div>
+<div class="omega-overlay"></div>
+
+<div class="hud-layer">
+<div class="hud-top">
+<a href="#home" class="hud-logo">BEL<span>ENT</span>ANI</a>
+<div class="hud-element glass-panel">SYS.STATUS: <span>OMEGA</span><br>NODE: <span>JUDAS-CORE-07</span><br>TIME: <span id="sysTime">00:00:00</span></div>
+</div>
+<div class="hud-bottom">
+<div class="hud-element">SEC: <span id="sectionName">00 // GENESIS</span></div>
+<div class="nav-dots">
+<div class="nav-dot active" id="dot-home"></div>
+<div class="nav-dot" id="dot-artist"></div>
+<div class="nav-dot" id="dot-music"></div>
+<div class="nav-dot" id="dot-judas"></div>
+<div class="nav-dot" id="dot-portal"></div>
+<div class="nav-dot" id="dot-gallery"></div>
+<div class="nav-dot" id="dot-contact"></div>
+<div class="nav-dot" id="dot-studio"></div>
+</div>
+<div class="hud-element live-indicator glass-panel"><div class="live-dot"></div>TRANSMITTING LIVE</div>
+</div>
+</div>
+
+<!-- HOME -->
+<section id="home">
+<div class="hero-pre-title" id="preTitle">◉ JUDAS ERA ◉ V.7.0 OMEGA DEFINITIVE ◉</div>
+<h1 class="hero-title" id="heroTitle">BELEN<span>TANI</span></h1>
+<p class="hero-subtitle" id="subtitle">La traición no es el final. Es el <span style="color:var(--text-main)">input</span>.<br>Bienvenido al núcleo galáctico de la frecuencia hiperreal.</p>
+<button class="cta-btn" id="ctaBtn" onclick="document.getElementById('artist').scrollIntoView({behavior:'smooth'})">[ ENTER GALACTIC CORE ]</button>
+</section>
+
+<!-- THE ARTIST -->
+<section id="artist" class="section">
+<h1 class="section-title">THE <span>ARTIST</span></h1>
+<div class="section-subtitle">ARCHIVE // VENOM // RECORD_01</div>
+<div class="narrative-block">
+<p class="narrative-text"><strong style="color: var(--text-main);">I. EL ORIGEN: PEDRO</strong><br>Pedro Belentani es un artista discográfico, compositor y productor nacido en São Paulo, Brasil, y forjado en Barcelona, España. Su compromiso formal con la música comenzó con entrenamiento vocal a los dieciséis años. Construye un sonido arraigado en el R&B alternativo, el dark pop y la electrónica industrial.</p>
+<p class="narrative-text"><strong style="color: var(--text-main);">II. LA TRANSFORMACIÓN</strong><br>El Efecto Belentani es el fenómeno del individuo improbable. Tuvo la audacia de convertir su santuario interior en un estudio de grabación. Este efecto es la transmutación del dolor en estética pura, hackeando el trauma a través de la creación.</p>
+</div>
+<div class="archetype-grid">
+<div class="archetype-card"><div class="archetype-icon">🗿</div><div class="archetype-name">PEDRO</div><div class="archetype-role">THE ROCK</div><div class="archetype-desc">El ancla fundacional. El que permanece. La raíz que atraviesa las dimensiones sin moverse.</div></div>
+<div class="archetype-card"><div class="archetype-icon">📖</div><div class="archetype-name">MARCOS</div><div class="archetype-role">THE CHRONICLER</div><div class="archetype-desc">El observador. El que registra. El que escribe la historia mientras los otros la viven.</div></div>
+<div class="archetype-card"><div class="archetype-icon">📡</div><div class="archetype-name">SANTOS</div><div class="archetype-role">THE ANTENNA</div><div class="archetype-desc">La santidad plural. El canal. El que recibe la señal de lo trascendente y la traduce al cuerpo.</div></div>
+<div class="archetype-card"><div class="archetype-icon">💎</div><div class="archetype-name">BELENTANI</div><div class="archetype-role">THE ARTIFACT</div><div class="archetype-desc">La integración del poder del guerrero y la voz del ángel. La marca. La belleza anómala.</div></div>
+<div class="archetype-card"><div class="archetype-icon">🧬</div><div class="archetype-name">THE HUMAN</div><div class="archetype-role">THE INTERFACE</div><div class="archetype-desc">El que mantiene la integridad y la conciencia en el mundo real. El que paga las facturas. El que canta.</div></div>
+</div>
+</section>
+
+<!-- MUSIC -->
+<section id="music" class="section">
+<h1 class="section-title">SONIC <span>ARCHIVE</span></h1>
+<div class="section-subtitle">AUDIO_SYNTHESIS_MODULE // FREQUENCY_SCAN</div>
+<p class="narrative-text" style="max-width: 800px; margin: 0 auto 40px;">Data recovered from the collapse. Frecuencias que hackean el trauma y lo transforman en creación.</p>
+<div class="music-grid">
+<div class="track-card"><div class="track-header"><div class="track-icon">🎵</div><div><div class="track-name">MON AMOUR</div><div class="track-platform">SPOTIFY // 3:24</div></div></div><div class="track-desc">Fusión de dark pop y R&B visceral. Una declaración de amor en medio del caos digital.</div><button class="track-launch" onclick="openTrackPanel('MON AMOUR','SPOTIFY // 3:24','https://open.spotify.com')">PLAY TRACK ↗</button></div>
+<div class="track-card"><div class="track-header"><div class="track-icon">🛋️</div><div><div class="track-name">THERAPIST</div><div class="track-platform">APPLE MUSIC // 4:11</div></div></div><div class="track-desc">Electrónica industrial con letras que diseccionan la psique humana. La sanación como código.</div><button class="track-launch" onclick="openTrackPanel('THERAPIST','APPLE MUSIC // 4:11','https://music.apple.com')">PLAY TRACK ↗</button></div>
+<div class="track-card"><div class="track-header"><div class="track-icon">💡</div><div><div class="track-name">APAGA A LUZ</div><div class="track-platform">YOUTUBE // 3:45</div></div></div><div class="track-desc">Melodías llenas de soul con estructuras rítmicas cautivadoras. El ancla en la oscuridad.</div><button class="track-launch" onclick="openTrackPanel('APAGA A LUZ','YOUTUBE // 3:45','https://youtube.com')">PLAY TRACK ↗</button></div>
+<div class="track-card"><div class="track-header"><div class="track-icon">🐢</div><div><div class="track-name">LENTO</div><div class="track-platform">SOUNDCLOUD // 2:58</div></div></div><div class="track-desc">R&B alternativo. La vulnerabilidad radical como mecanismo de supervivencia.</div><button class="track-launch" onclick="openTrackPanel('LENTO','SOUNDCLOUD // 2:58','https://soundcloud.com')">PLAY TRACK ↗</button></div>
+<div class="track-card"><div class="track-header"><div class="track-icon">✍️</div><div><div class="track-name">I WROTE A SONG</div><div class="track-platform">SOUNDCLOUD // 3:12</div></div></div><div class="track-desc">La confesión del artista. El proceso creativo expuesto como acto de vulnerabilidad.</div><button class="track-launch" onclick="openTrackPanel('I WROTE A SONG','SOUNDCLOUD // 3:12','https://soundcloud.com')">PLAY TRACK ↗</button></div>
+<div class="track-card"><div class="track-header"><div class="track-icon">🇺🇸</div><div><div class="track-name">AMERICA HAS A PROBLEM</div><div class="track-platform">AMAZON MUSIC // 4:30</div></div></div><div class="track-desc">Crítica social envuelta en sintetizadores oscuros. El sistema como enemigo invisible.</div><button class="track-launch" onclick="openTrackPanel('AMERICA HAS A PROBLEM','AMAZON MUSIC // 4:30','https://music.amazon.com')">PLAY TRACK ↗</button></div>
+</div>
+</section>
+
+<!-- JUDAS ERA -->
+<section id="judas" class="section">
+<h1 class="section-title">JUDAS <span>ERA</span></h1>
+<div class="section-subtitle">SYSTEM HALT // PROTOCOL SUSPENDED</div>
+<div class="narrative-block">
+<p class="narrative-text" style="color: var(--red-blood);">El proyecto se detuvo. Judas asumió su rol con precisión algorítmica.</p>
+<p class="narrative-text" style="font-family: var(--font-fantasy); font-size: 24px; color: var(--text-main);">"Recuperaremos la llave. O cambiaremos la cerradura."</p>
+</div>
+<div class="judas-phases">
+<div class="phase-card"><div class="phase-title">FASE 01 // EL HOMBRE INTEGRADO</div><div class="phase-text">No existe un "cuándo". No existe un "dónde". Existe un entre — un pliegue del universo donde el tiempo no corre, se respira. Donde las almas no envejecen, iteran. En ese entre, caminaba un hombre que llevaba muchos nombres. Le llamaban Pedro. Le llamaban Marcos. Le llamaban Santos. Le llamaban Belentani. No era un santo. Era un sistema operativo humano corriendo cuatro procesos en paralelo: El Ángel, El Guerrero, El Analítico, El Cronista.</div></div>
+<div class="phase-card"><div class="phase-title">FASE 02 // LA DEUDA IMPAGABLE</div><div class="phase-text">Se conocieron en un camino que no estaba en ningún mapa. Se volvieron íntimos. Y entonces ocurrió lo que Judas no pudo soportar: Pedro le besó los pies. No por sumisión. Por devoción. "Porque estás aquí. Porque me acompañas. Porque tu presencia, aunque a veces duela, es un regalo que no merezco pero que agradezco." Judas sintió que el mundo se le caía. La deuda se volvió impagable.</div></div>
+<div class="phase-card"><div class="phase-title">FASE 03 // EL ROBO Y EL CANTO</div><div class="phase-text">Judas esperó la noche. Extendió los dedos hacia la Llave Dorada. La agarró. Tiró. Y en ese instante, el artefacto se activó. Cuatro voces salieron del pecho de Pedro: El Ángel cantó. El Guerrero se irigió. El Analítico observó. El Cronista registró. Judas retrocedió, esperando una maldición. Pero Pedro se puso a cantarle.</div></div>
+<div class="phase-card"><div class="phase-title">FASE 04 // LA VICTORIA AMARGA</div><div class="phase-text">"Quédatela", le dijo Pedro. "La llave es metal. Es símbolo. Lo que yo tengo, lo que nadie me puede arrebatar, es mi voz. La combinación de mis arquetipos." Judas volvió a su tierra con la llave dorada. Lo reconocieron. Vivió una época de victoria. Pero era amarga. Porque nunca logró olvidar a Pedro arrodillado, cantándole, después de haberle robado.</div></div>
+<div class="phase-card"><div class="phase-title">FASE 05 // LA MENTIRA COMPARTIDA</div><div class="phase-text">La llave nunca fue lo valioso. Era una mentira compartida. Pedro dejó que Judas le robara algo que no importaba, para que Judas descubriera lo que sí importaba. Lo valioso era la voz. Belentani te canta esta historia para que no cometas el error de Judas. Y si ya lo hiciste, Belentani también te canta a ti. Sin condiciones. Sin juicio.</div></div>
+</div>
+</section>
+
+<!-- PORTAL -->
+<section id="portal" class="section">
+<h1 class="section-title">RECONSTRUIR EL <span>NÚCLEO</span></h1>
+<div class="section-subtitle">5 FRAGMENTOS CRISTALINOS DISPERSOS EN EL VACÍO</div>
+<div class="diamond-scene">
+<div class="rune-circle">
+<svg class="rune-svg" viewBox="0 0 200 200">
+<circle cx="100" cy="100" r="95" fill="none" stroke="rgba(255,0,60,0.2)" stroke-width="0.5" stroke-dasharray="2 4"/>
+<circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,215,0,0.1)" stroke-width="1"/>
+<path d="M100,10 L110,90 L100,110 L90,90 Z" fill="none" stroke="rgba(255,0,60,0.3)" stroke-width="0.5"/>
+<path d="M100,190 L110,110 L100,90 L90,110 Z" fill="none" stroke="rgba(255,0,60,0.3)" stroke-width="0.5"/>
+<text x="100" y="30" fill="rgba(255,255,255,0.3)" font-size="8" font-family="JetBrains Mono" text-anchor="middle">AETHERIUM</text>
+<text x="100" y="180" fill="rgba(255,255,255,0.3)" font-size="8" font-family="JetBrains Mono" text-anchor="middle">JUDAS_CORE</text>
+</svg>
+<svg class="rune-svg reverse" viewBox="0 0 200 200">
+<circle cx="100" cy="100" r="90" fill="none" stroke="rgba(0,255,255,0.1)" stroke-width="0.5"/>
+<polygon points="100,20 160,140 40,140" fill="none" stroke="rgba(0,255,255,0.2)" stroke-width="0.5"/>
+<polygon points="100,180 40,60 160,60" fill="none" stroke="rgba(0,255,255,0.2)" stroke-width="0.5"/>
+</svg>
+</div>
+<canvas id="diamonds-canvas" aria-label="Portal interactivo de cinco fragmentos cristalinos"></canvas>
+</div>
+</section>
+
+<!-- ART GALLERY -->
+<section id="gallery" class="section">
+<h1 class="section-title">VISUAL <span>ARCHIVE</span></h1>
+<div class="section-subtitle">DATA RECOVERED FROM THE COLLAPSE // 4K UPSCALED</div>
+<div class="gallery-grid" id="galleryGrid"></div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="section">
+<h1 class="section-title">CONTACT <span>PROTOCOL</span></h1>
+<div class="section-subtitle">ESTABLISH A DIRECT CONNECTION WITH THE MAINFRAME</div>
+<div class="contact-container">
+<p class="narrative-text">DIRECT TRANSMISSION. Send encrypted data packets directly to the central core.</p>
+<a href="mailto:belentani777pedro@gmail.com" class="contact-email">belentani777pedro@gmail.com</a>
+<div class="social-links">
+<a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="social-link">INSTAGRAM</a>
+<a href="https://youtube.com" target="_blank" rel="noopener noreferrer" class="social-link">YOUTUBE</a>
+<a href="https://spotify.com" target="_blank" rel="noopener noreferrer" class="social-link">SPOTIFY</a>
+<a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-link">TWITTER</a>
+</div>
+</div>
+</section>
+
+<!-- STUDIO LAB -->
+<section id="studio" class="section">
+<h1 class="section-title">STUDIO <span>LAB</span></h1>
+<div class="section-subtitle">CENTRO DE AUTOMATIZACIÓN JUDAS v7.0 // 120 MÓDULOS IA</div>
+<div class="grid-4" id="studioGrid"></div>
+</section>
+
+<!-- AI CHAT -->
+<div class="ai-chat" id="aiChat">
+<div class="chat-header" onclick="document.getElementById('aiChat').classList.toggle('minimized')">
+<div class="chat-title"><div class="live-dot"></div>CORE_AI // HYPER_INTELLIGENCE</div>
+<div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">[ — ]</div>
+</div>
+<div class="chat-messages" id="chatMessages">
+<div class="message system">> NÚCLEO AI ACTIVADO. INTEGRACIÓN: 0/5.</div>
+<div class="message ai"><div class="meta">◉ CORE_AI</div>Bienvenido, agente. El núcleo está fragmentado. <em>Habla. Hay palabras que despiertan arquetipos. Otras que destruyen sistemas.</em></div>
+</div>
+<div class="chat-input-area">
+<input type="text" class="chat-input" id="chatInput" placeholder="Escribe un comando o frecuencia...">
+<button class="chat-send" id="chatSend">SEND</button>
+</div>
+</div>
+
+<!-- MODAL / OVERLAY -->
+<div class="overlay" id="genericOverlay">
+<div class="overlay-content" id="overlayContent">
+<button class="overlay-close" onclick="closeOverlay()" data-card>×</button>
+<div id="overlayBody"></div>
+</div>
+</div>
+
+<!-- UI Flotante -->
+<div class="floating-terminal" id="floatingTerminal">
+<div class="terminal-body" id="terminalBody"></div>
+</div>
+
+<script>
+// ==========================================
+// 0. BOOT SEQUENCE
+// ==========================================
+const bootLog = document.getElementById('bootLog');
+const bootLines = [
+"> JUDAS_OS v7.0 OMEGA DEFINITIVE",
+"> Mounting /dev/aetherium...",
+"> Checking reality buffers... OK",
+"> Loading hyperreal shaders...",
+"> Calibrating galactic core geometry...",
+"> Integrating 12 upscaled photos...",
+"> Aetheric frequencies stabilized.",
+"> WELCOME, AGENT."
+];
+let bootIndex = 0;
+function writeBoot() {
+if (bootIndex < bootLines.length) {
+bootLog.innerHTML += bootLines[bootIndex] + "<br>";
+bootIndex++;
+setTimeout(writeBoot, 300);
+} else {
+setTimeout(() => {
+document.getElementById('boot-screen').style.opacity = '0';
+setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 1000);
+}, 500);
+}
+}
+writeBoot();
+
+// ==========================================
+// 1. CURSOR & UI EFFECTS
+// ==========================================
+const cursorDot = document.querySelector('.cursor-dot');
+const cursorOutline = document.querySelector('.cursor-outline');
+const cursorCross = document.querySelector('.cursor-cross');
+const cursorBox = document.querySelector('.cursor-box');
+let mouseX = 0, mouseY = 0, outlineX = 0, outlineY = 0;
+window.addEventListener('mousemove', (e) => {
+mouseX = e.clientX; mouseY = e.clientY;
+cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+cursorCross.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+cursorBox.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+});
+function animateCursor() {
+outlineX += (mouseX - outlineX) * 0.15;
+outlineY += (mouseY - outlineY) * 0.15;
+cursorOutline.style.transform = `translate(${outlineX}px, ${outlineY}px) translate(-50%, -50%)`;
+requestAnimationFrame(animateCursor);
+}
+animateCursor();
+document.querySelectorAll('button, a, [data-card], .chat-input, .chat-header, .tool-card, .nav-dot, .archetype-card, .track-card, .gallery-item').forEach(el => {
+el.addEventListener('mouseenter', () => {
+cursorOutline.classList.add('hover');
+cursorBox.classList.add('active');
+});
+el.addEventListener('mouseleave', () => {
+cursorOutline.classList.remove('hover');
+cursorBox.classList.remove('active');
+});
+if(el.classList.contains('tool-card')) {
+el.addEventListener('mousemove', (e) => {
+const rect = el.getBoundingClientRect();
+el.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+el.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+});
+}
+});
+setInterval(() => {
+const now = new Date();
+document.getElementById('sysTime').innerText = now.toTimeString().split(' ')[0];
+}, 1000);
+
+// ==========================================
+// 2. THREE.JS - GALACTIC CORE
+// ==========================================
+const canvas = document.getElementById('webgl-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+let composer, bloomPass;
+if (typeof THREE.EffectComposer !== 'undefined') {
+composer = new THREE.EffectComposer(renderer);
+composer.addPass(new THREE.RenderPass(scene, camera));
+if (typeof THREE.UnrealBloomPass !== 'undefined') {
+bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 0.8, 0.1);
+composer.addPass(bloomPass);
+}
+}
+const coreGeo = new THREE.IcosahedronGeometry(12, 20);
+const coreMat = new THREE.ShaderMaterial({
+uniforms: {
+uTime: { value: 0 },
+uColor: { value: new THREE.Color(0xff003c) },
+uColor2: { value: new THREE.Color(0xffd700) }
+},
+vertexShader: `
+uniform float uTime;
+varying vec3 vNormal; varying float vDisplacement; varying vec3 vPosition;
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+vec3 fade(vec3 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
+float cnoise(vec3 P){
+vec3 Pi0 = floor(P); vec3 Pi1 = Pi0 + vec3(1.0);
+Pi0 = mod(Pi0, 289.0); Pi1 = mod(Pi1, 289.0);
+vec3 Pf0 = fract(P); vec3 Pf1 = Pf0 - vec3(1.0);
+vec4 ix = vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x); vec4 iy = vec4(Pi0.yy, Pi1.yy);
+vec4 iz0 = Pi0.zzzz; vec4 iz1 = Pi1.zzzz;
+vec4 ixy = permute(permute(ix) + iy);
+vec4 ixy0 = permute(ixy + iz0); vec4 ixy1 = permute(ixy + iz1);
+vec4 gx0 = ixy0 / 7.0; vec4 gy0 = fract(floor(gx0) / 7.0) - 0.5; gx0 = fract(gx0);
+vec4 gz0 = vec4(0.5) - abs(gx0) - abs(gy0); vec4 sz0 = step(gz0, vec4(0.0));
+gx0 -= sz0 * (step(0.0, gx0) - 0.5); gy0 -= sz0 * (step(0.0, gy0) - 0.5);
+vec4 gx1 = ixy1 / 7.0; vec4 gy1 = fract(floor(gx1) / 7.0) - 0.5; gx1 = fract(gx1);
+vec4 gz1 = vec4(0.5) - abs(gx1) - abs(gy1); vec4 sz1 = step(gz1, vec4(0.0));
+gx1 -= sz1 * (step(0.0, gx1) - 0.5); gy1 -= sz1 * (step(0.0, gy1) - 0.5);
+vec3 g000 = vec3(gx0.x,gy0.x,gz0.x); vec3 g100 = vec3(gx0.y,gy0.y,gz0.y);
+vec3 g010 = vec3(gx0.z,gy0.z,gz0.z); vec3 g110 = vec3(gx0.w,gy0.w,gz0.w);
+vec3 g001 = vec3(gx1.x,gy1.x,gz1.x); vec3 g101 = vec3(gx1.y,gy1.y,gz1.y);
+vec3 g011 = vec3(gx1.z,gy1.z,gz1.z); vec3 g111 = vec3(gx1.w,gy1.w,gz1.w);
+vec4 norm0 = taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+g000 *= norm0.x; g010 *= norm0.y; g100 *= norm0.z; g110 *= norm0.w;
+vec4 norm1 = taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+g001 *= norm1.x; g011 *= norm1.y; g101 *= norm1.z; g111 *= norm1.w;
+float n000 = dot(g000, Pf0); float n100 = dot(g100, vec3(Pf1.x, Pf0.yz));
+float n010 = dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z)); float n110 = dot(g110, vec3(Pf1.xy, Pf0.z));
+float n001 = dot(g001, vec3(Pf0.xy, Pf1.z)); float n101 = dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z));
+float n011 = dot(g011, vec3(Pf0.x, Pf1.yz)); float n111 = dot(g111, Pf1);
+vec3 fade_xyz = fade(Pf0);
+vec4 n_z = mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z);
+vec2 n_yz = mix(n_z.xy, n_z.zw, fade_xyz.y);
+float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
+return 2.2 * n_xyz;
+}
+void main() {
+vNormal = normal; vPosition = position;
+float noise = cnoise(position * 0.15 + uTime * 0.3);
+float noise2 = cnoise(position * 0.5 + uTime * 0.5);
+vDisplacement = noise + noise2 * 0.2;
+vec3 pos = position + normal * vDisplacement * 4.0;
+gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+}
+`,
+fragmentShader: `
+uniform vec3 uColor; uniform vec3 uColor2; uniform float uTime;
+varying vec3 vNormal; varying float vDisplacement; varying vec3 vPosition;
+void main() {
+float intensity = pow(0.75 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
+float pattern = sin(vPosition.y * 10.0 + uTime * 2.0) * 0.5 + 0.5;
+vec3 color = mix(uColor, uColor2, vDisplacement * 0.5 + pattern * 0.3);
+gl_FragColor = vec4(color * intensity * 1.5, 1.0);
+}
+`,
+transparent: true, blending: THREE.AdditiveBlending
+});
+const core = new THREE.Mesh(coreGeo, coreMat);
+scene.add(core);
+const ringGeo = new THREE.RingGeometry(18, 30, 128, 1);
+const ringMat = new THREE.ShaderMaterial({
+uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(0xff003c) } },
+vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+fragmentShader: `
+uniform float uTime; uniform vec3 uColor; varying vec2 vUv;
+void main() {
+float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
+float radius = distance(vUv, vec2(0.5));
+float swirl = sin(angle * 10.0 + uTime * 5.0 - radius * 20.0) * 0.5 + 0.5;
+float alpha = (1.0 - abs(radius - 0.5) * 2.0) * swirl;
+gl_FragColor = vec4(uColor, alpha * 0.8);
+}
+`,
+side: THREE.DoubleSide, transparent: true, blending: THREE.AdditiveBlending
+});
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = Math.PI / 2.5;
+scene.add(ring);
+const starsGeo = new THREE.BufferGeometry();
+const starsCount = 10000;
+const starsPos = new Float32Array(starsCount * 3);
+const starsColor = new Float32Array(starsCount * 3);
+for(let i=0; i<starsCount; i++) {
+const r = 80 + Math.random() * 120;
+const theta = Math.random() * Math.PI * 2;
+const phi = Math.acos(2 * Math.random() - 1);
+starsPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+starsPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+starsPos[i*3+2] = r * Math.cos(phi);
+const c = Math.random();
+if(c>0.95) { starsColor[i*3]=1; starsColor[i*3+1]=0; starsColor[i*3+2]=0.2; }
+else if(c>0.9) { starsColor[i*3]=1; starsColor[i*3+1]=0.8; starsColor[i*3+2]=0; }
+else { starsColor[i*3]=1; starsColor[i*3+1]=1; starsColor[i*3+2]=1; }
+}
+starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+starsGeo.setAttribute('color', new THREE.BufferAttribute(starsColor, 3));
+const starsMat = new THREE.PointsMaterial({ size: 0.5, vertexColors: true, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
+const stars = new THREE.Points(starsGeo, starsMat);
+scene.add(stars);
+camera.position.z = 45;
+let targetMouseX = 0, targetMouseY = 0;
+window.addEventListener('mousemove', (e) => {
+targetMouseX = (e.clientX / window.innerWidth) * 2 - 1;
+targetMouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+const clock = new THREE.Clock();
+let scrollProgress = 0;
+function animateThree() {
+const elapsedTime = clock.getElapsedTime();
+coreMat.uniforms.uTime.value = elapsedTime;
+ringMat.uniforms.uTime.value = elapsedTime;
+camera.position.x += (targetMouseX * 8 - camera.position.x) * 0.05;
+camera.position.y += (targetMouseY * 8 - camera.position.y) * 0.05;
+camera.position.z = 45 - scrollProgress * 25;
+camera.lookAt(core.position);
+core.rotation.y = elapsedTime * 0.1;
+core.rotation.x = elapsedTime * 0.05;
+ring.rotation.z = elapsedTime * 0.2;
+stars.rotation.y = elapsedTime * 0.005;
+if (composer) composer.render();
+else renderer.render(scene, camera);
+requestAnimationFrame(animateThree);
+}
+animateThree();
+window.addEventListener('resize', () => {
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ==========================================
+// 3. GSAP SCROLLTRIGGER
+// ==========================================
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+const tl = gsap.timeline({ defaults: { ease: "power3.out" }, delay: 3.5 });
+tl.to('#preTitle', { opacity: 1, y: 0, duration: 1 })
+.to('#heroTitle', { opacity: 1, y: 0, duration: 1.5 }, "-=0.5")
+.to('#subtitle', { opacity: 1, y: 0, duration: 1 }, "-=0.8")
+.to('#ctaBtn', { opacity: 1, y: 0, duration: 0.8 }, "-=0.6");
+const sectionName = document.getElementById('sectionName');
+const dots = ['home', 'artist', 'music', 'judas', 'portal', 'gallery', 'contact', 'studio'];
+const secNames = ['GENESIS', 'THE ARTIST', 'MUSIC', 'JUDAS ERA', 'THE FRAGMENTS', 'ART GALLERY', 'CONTACT', 'HYPER LAB'];
+dots.forEach((sec, i) => {
+ScrollTrigger.create({
+trigger: `#${sec}`, start: "top center", end: "bottom center",
+onToggle: self => {
+if (self.isActive) {
+const num = String(i).padStart(2, '0');
+sectionName.innerHTML = `${num} // ${secNames[i]}`;
+document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+document.getElementById(`dot-${sec}`).classList.add('active');
+}
+},
+onUpdate: self => { scrollProgress = self.progress * (i + 1) / dots.length; }
+});
+});
+
+// ==========================================
+// 4. PORTAL (DIAMONDS) LOGIC
+// ==========================================
+const dCanvas = document.getElementById('diamonds-canvas');
+const dScene = new THREE.Scene();
+const dCamera = new THREE.PerspectiveCamera(60, dCanvas.clientWidth / dCanvas.clientHeight, 0.1, 1000);
+const dRenderer = new THREE.WebGLRenderer({ canvas: dCanvas, alpha: true, antialias: true });
+dRenderer.setSize(dCanvas.clientWidth, dCanvas.clientHeight);
+dRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+let dComposer;
+if (typeof THREE.EffectComposer !== 'undefined') {
+dComposer = new THREE.EffectComposer(dRenderer);
+dComposer.addPass(new THREE.RenderPass(dScene, dCamera));
+if (typeof THREE.UnrealBloomPass !== 'undefined') {
+dComposer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(dCanvas.clientWidth, dCanvas.clientHeight), 1.5, 0.4, 0.6));
+}
+}
+dScene.add(new THREE.AmbientLight(0x202020, 0.2));
+const keyLight = new THREE.PointLight(0xff003c, 3, 100); keyLight.position.set(5, 5, 5); dScene.add(keyLight);
+const fillLight = new THREE.PointLight(0x00ffff, 2, 100); fillLight.position.set(-5, 3, 3); dScene.add(fillLight);
+const backLight = new THREE.PointLight(0xffd700, 1.5, 100); backLight.position.set(0, -5, -5); dScene.add(backLight);
+const diamondsData = [
+{ name: 'RUBY', color: 0xe0115f, note: 'C4', key: 'rock', desc: 'El Ancla' },
+{ name: 'SAPPHIRE', color: 0x0f52ba, note: 'E4', key: 'chronicle', desc: 'El Cronista' },
+{ name: 'PURE LIGHT', color: 0xffffff, note: 'G4', key: 'antenna', desc: 'La Transcendencia' },
+{ name: 'GOLD', color: 0xffd700, note: 'B4', key: 'artifact', desc: 'El Guerrero' },
+{ name: 'EMERALD', color: 0x50c878, note: 'D5', key: 'interface', desc: 'La Interfaz' }
+];
+const diamondMeshes = [];
+const positions = [[-5, 0, 0], [-2.5, 1.5, -1], [0, -0.5, 1], [2.5, 1, -0.5], [5, -0.5, 0]];
+let synth = null, reverb = null;
+async function initAudio() {
+if (synth) return true;
+try {
+const startPromise = Tone.start();
+await Promise.race([startPromise, new Promise(resolve => setTimeout(resolve, 600))]);
+reverb = new Tone.Reverb({ decay: 5, wet: 0.4 }).toDestination();
+synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth', count: 3, spread: 30 }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 4 } }).connect(reverb);
+synth.volume.value = -10;
+return true;
+} catch (error) {
+console.warn('Tone.js audio suspended; continuing with visual portal feedback.', error);
+return false;
+}
+}
+diamondsData.forEach((d, i) => {
+const mat = new THREE.MeshPhysicalMaterial({
+color: d.color, metalness: 0.1, roughness: 0.0,
+transmission: 0.9, thickness: 1.5, ior: 2.42,
+clearcoat: 1.0, clearcoatRoughness: 0.0,
+envMapIntensity: 3.0, emissive: d.color, emissiveIntensity: 0.2,
+transparent: true, opacity: 0.95
+});
+const geo = new THREE.OctahedronGeometry(1.2, 0);
+geo.scale(1, 1.8, 1);
+const group = new THREE.Group();
+const mesh = new THREE.Mesh(geo, mat);
+group.add(mesh);
+const glowGeo = new THREE.SphereGeometry(0.4, 16, 16);
+const glowMat = new THREE.MeshBasicMaterial({ color: d.color, transparent: true, opacity: 0.6 });
+group.add(new THREE.Mesh(glowGeo, glowMat));
+group.position.set(...positions[i]); group.scale.set(0.8, 0.8, 0.8); group.userData = { index: i, active: false };
+dScene.add(group); diamondMeshes.push(group);
+});
+dCamera.position.set(0, 0, 10);
+const raycaster = new THREE.Raycaster();
+const mouseVec = new THREE.Vector2();
+let hoveredDiamond = null;
+dCanvas.addEventListener('mousemove', (e) => {
+const rect = dCanvas.getBoundingClientRect();
+mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+});
+dCanvas.addEventListener('click', () => { if (hoveredDiamond !== null) activateDiamond(hoveredDiamond); });
+async function activateDiamond(index) {
+const mesh = diamondMeshes[index];
+if (mesh.userData.active) return;
+mesh.userData.active = true;
+const audioReady = await initAudio();
+if (audioReady && synth) {
+try { synth.triggerAttackRelease(diamondsData[index].note, '2n'); } catch (error) { console.warn('Tone.js note skipped.', error); }
+}
+keyLight.color.setHex(diamondsData[index].color);
+const shockGeo = new THREE.RingGeometry(1, 1.2, 32);
+const shockMat = new THREE.MeshBasicMaterial({ color: diamondsData[index].color, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+const shock = new THREE.Mesh(shockGeo, shockMat);
+shock.position.copy(mesh.position);
+dScene.add(shock);
+gsap.to(shock.scale, { x: 5, y: 5, z: 5, duration: 1, ease: 'power2.out' });
+gsap.to(shockMat, { opacity: 0, duration: 1, onComplete: () => dScene.remove(shock) });
+gsap.to(mesh.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 0.3, yoyo: true, repeat: 1 });
+gsap.to(mesh.rotation, { y: mesh.rotation.y + Math.PI * 2, duration: 1.5 });
+addMessage('system', `◉ Fragmento activado: ${diamondsData[index].name} (${diamondsData[index].desc})`);
+const activeCount = diamondMeshes.filter(m => m.userData.active).length;
+if (activeCount === 5) {
+addMessage('ai', 'Los cinco fragmentos se han unido. La frecuencia es estable. Has reconstruido el núcleo hiperreal.');
+diamondMeshes.forEach((m, i) => {
+gsap.to(m.position, { x: 0, y: 0, z: 0, duration: 2, delay: i * 0.1 });
+gsap.to(m.scale, { x: 0.3, y: 0.3, z: 0.3, duration: 2, delay: i * 0.1 });
+});
+triggerVirusKiller(true);
+}
+}
+function animateDiamonds() {
+const elapsed = clock.getElapsedTime();
+raycaster.setFromCamera(mouseVec, dCamera);
+hoveredDiamond = null;
+diamondMeshes.forEach((mesh, i) => {
+if (mesh.position.distanceTo(new THREE.Vector3(0,0,0)) > 0.1) {
+mesh.position.y = positions[i][1] + Math.sin(elapsed * 0.8 + i) * 0.2;
+mesh.rotation.y += 0.008 + (mesh.userData.active ? 0.03 : 0);
+mesh.rotation.x = Math.sin(elapsed * 0.5 + i) * 0.2;
+} else { mesh.rotation.y += 0.05; mesh.rotation.x += 0.02; }
+const intersects = raycaster.intersectObject(mesh, true);
+if (intersects.length > 0 && !hoveredDiamond) {
+hoveredDiamond = i;
+gsap.to(mesh.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+mesh.children[0].material.emissiveIntensity = 0.8;
+mesh.children[1].material.opacity = 0.9;
+} else if (hoveredDiamond !== i && !mesh.userData.active) {
+mesh.children[0].material.emissiveIntensity = 0.2;
+mesh.children[1].material.opacity = 0.6;
+}
+});
+if (dComposer) dComposer.render();
+else dRenderer.render(dScene, dCamera);
+requestAnimationFrame(animateDiamonds);
+}
+animateDiamonds();
+
+// ==========================================
+// 5. ART GALLERY (12 FOTOS REALES)
+// ==========================================
+const galleryImages = [
+{ url: '/manus-storage/venom_30f899ed.jpg', title: 'VENOM', desc: 'Archive // Venom // RECORD_01' },
+{ url: '/manus-storage/gaze_63ce94aa.png', title: 'GAZE', desc: 'Archive // Gaze // RECORD_02' },
+{ url: '/manus-storage/venom_30f899ed.jpg', title: 'ARCHIVE 03', desc: 'Visual Fragment // RECORD_03' },
+{ url: '/manus-storage/warrior-angel_7a65f2f1.jpg', title: 'WARRIOR & ANGEL', desc: 'Zion Dimension // RECORD_04' },
+{ url: '/manus-storage/judas-rain_9200d34e.jpg', title: 'JUDAS RAIN', desc: 'System Halt // RECORD_05' },
+{ url: '/manus-storage/st-peter-jacket_cbcbe39e.jpg', title: 'ST. PETER JACKET', desc: 'The Guardian // RECORD_06' },
+{ url: '/manus-storage/judas-trinity_0de28203.jpg', title: 'JUDAS TRINITY', desc: 'The Trinity Protocol // RECORD_07' },
+{ url: '/manus-storage/neon-tubes_46b0964b.jpg', title: 'NEON TUBES', desc: 'Cyber Gaze // RECORD_08' },
+{ url: '/manus-storage/snake-kiss_1d6f5fe5.jpg', title: 'SNAKE KISS', desc: 'Serpent Pact // RECORD_09' },
+{ url: '/manus-storage/space-ship_fa29f6fe.jpg', title: 'SPACE SHIP', desc: 'Zion Interceptor // RECORD_10' },
+{ url: '/manus-storage/face-model_18cf88a7.png', title: '3D FACE MODEL', desc: 'Sincro 1.0 // RECORD_11' },
+{ url: '/manus-storage/warrior-angel_7a65f2f1.jpg', title: 'SCI-FI LAB', desc: 'Virtual Dimension 042 // RECORD_12' }
+];
+const galleryGrid = document.getElementById('galleryGrid');
+galleryImages.forEach((img, i) => {
+const item = document.createElement('div');
+item.className = 'gallery-item';
+item.innerHTML = `
+<img src="${img.url}" alt="${img.title}" loading="eager">
+<div class="gallery-info">
+<div class="gallery-title">${img.title}</div>
+<div class="gallery-desc">${img.desc}</div>
+</div>
+`;
+galleryGrid.appendChild(item);
+gsap.to(item, {
+opacity: 1,
+y: 0,
+scale: 1,
+duration: 0.8,
+delay: i * 0.1,
+scrollTrigger: {
+trigger: item,
+start: "top 85%",
+toggleActions: "play none none none"
+}
+});
+});
+
+// ==========================================
+// 6. STUDIO LAB LOGIC
+// ==========================================
+const tools = [
+{ id: 'vision', icon: '🎨', name: 'VISION FORGE', desc: 'Midjourney + Leonardo AI. Estética dark pop, cyberpunk, surrealista hiperrealista.', url: 'https://leonardo.ai' },
+{ id: 'stable', icon: '🌌', name: 'STABLE DREAM', desc: 'Stable Diffusion + Civitai. Modelos open-source, local, sin censura. Deep fake.', url: 'https://civitai.com' },
+{ id: 'dalle', icon: '⚡', name: 'DALL-E NEXUS', desc: 'OpenAI DALL-E 3. Texto en imágenes perfecto, coherencia narrativa.', url: 'https://openai.com/dall-e-3' },
+{ id: 'flux', icon: '🔥', name: 'FLUX FORGE', desc: 'Flux Pro / Dev. Modelo open-source que rivaliza con Midjourney.', url: 'https://replicate.com/black-forest-labs/flux-pro' },
+{ id: 'krea', icon: '✨', name: 'KREA REALTIME', desc: 'Generación en tiempo real mientras dibujas. Magia instantánea.', url: 'https://krea.ai' },
+{ id: 'runway', icon: '🎬', name: 'RUNWAY GEN-3', desc: 'RunwayML Gen-3 Alpha. El estándar de oro en video IA hiperrealista.', url: 'https://runwayml.com' },
+{ id: 'pika', icon: '🔴', name: 'PIKA LABS', desc: 'Pika 2.0. Rápido, accesible, potente. Efectos especiales IA.', url: 'https://pika.art' },
+{ id: 'kling', icon: '🌊', name: 'KLING AI', desc: 'Kling AI. El chino que compite con Sora. Videos largos, coherentes.', url: 'https://klingai.com' },
+{ id: 'luma', icon: '💫', name: 'LUMA DREAM', desc: 'Luma Dream Machine. Videos cinemáticos con calidad cinematográfica.', url: 'https://lumalabs.ai/dream-machine' },
+{ id: 'suno', icon: '🎵', name: 'SUNO FORGE', desc: 'Suno AI v4. Canciones completas desde texto. Voces, producción, mezcla.', url: 'https://suno.com' },
+{ id: 'udio', icon: '🎧', name: 'UDIO NEXUS', desc: 'Udio. Calidad de estudio. Producción profesional desde prompts.', url: 'https://udio.com' },
+{ id: 'eleven', icon: '🎤', name: 'ELEVEN VOICE', desc: 'ElevenLabs. Clonación de voz, TTS hiperrealista, doblaje.', url: 'https://elevenlabs.io' },
+{ id: 'aiva', icon: '🎼', name: 'AIVA COMPOSER', desc: 'AIVA. Compositor IA para bandas sonoras, clásica, cinemática.', url: 'https://aiva.ai' },
+{ id: 'soundraw', icon: '🥁', name: 'SOUNDRAW BEATS', desc: 'Soundraw. Beats y música libre de royalties para creators.', url: 'https://soundraw.io' },
+{ id: 'cursor', icon: '⌨', name: 'CURSOR NEXUS', desc: 'Cursor AI. El editor de código con IA más potente. Copilot asesino.', url: 'https://cursor.sh' },
+{ id: 'v0', icon: '◆', name: 'V0 VERCEL', desc: 'v0.dev by Vercel. Genera UIs React/Next.js desde prompts. Diseño perfecto.', url: 'https://v0.dev' },
+{ id: 'bolt', icon: '⚡', name: 'BOLT.NEW', desc: 'Bolt.new by StackBlitz. Apps full-stack en el navegador. Deploy instantáneo.', url: 'https://bolt.new' },
+{ id: 'lovable', icon: '♡', name: 'LOVABLE DEV', desc: 'Lovable.dev. Construye apps con IA conversacional. Sin código.', url: 'https://lovable.dev' },
+{ id: 'replit', icon: '🤖', name: 'REPLIT AGENT', desc: 'Replit Agent. Agente que construye apps completas desde idea.', url: 'https://replit.com' },
+{ id: 'copilot', icon: '🐙', name: 'GITHUB COPILOT', desc: 'GitHub Copilot. El padre de todos. Autocompletado IA en VSCode.', url: 'https://github.com/features/copilot' },
+{ id: 'claude', icon: '🧠', name: 'CLAUDE NEXUS', desc: 'Claude 3.5 Sonnet. El pensador profundo. Análisis, escritura, código.', url: 'https://claude.ai' },
+{ id: 'gpt', icon: '🌟', name: 'GPT OASIS', desc: 'ChatGPT + o1. El clásico. Razonamiento avanzado con o1.', url: 'https://chat.openai.com' },
+{ id: 'perplexity', icon: '🔍', name: 'PERPLEXITY PRO', desc: 'Perplexity AI. Búsqueda con IA. Respuestas con fuentes citadas.', url: 'https://perplexity.ai' },
+{ id: 'autogpt', icon: '🦾', name: 'AUTOGPT CORE', desc: 'AutoGPT + AgentGPT. Agentes autónomos que ejecutan tareas complejas solos.', url: 'https://agentgpt.reworkd.ai' },
+{ id: 'crew', icon: '👥', name: 'CREW AI', desc: 'CrewAI. Equipos de agentes IA colaborando. Multi-agent systems.', url: 'https://crewai.com' },
+{ id: 'n8n', icon: '🔗', name: 'N8N WORKFLOWS', desc: 'n8n + Zapier. Automatización visual. Conecta todo con todo.', url: 'https://n8n.io' },
+{ id: 'make', icon: '⚙️', name: 'MAKE SCENARIOS', desc: 'Make (Integromat). Escenarios complejos de automatización visual.', url: 'https://make.com' },
+{ id: 'langflow', icon: '🌊', name: 'LANGFLOW HUB', desc: 'Langflow + LangChain. Construye LLM apps visualmente. RAG, agents, chains.', url: 'https://langflow.org' }
+];
+const studioGrid = document.getElementById('studioGrid');
+function launchToolById(id) {
+const tool = tools.find(item => item.id === id);
+if (tool) openToolPanel(tool);
+}
+function openToolPanel(tool) {
+openOverlay(`
+<div style="font-size:64px; margin-bottom:16px; text-align:center;">${tool.icon}</div>
+<h2 style="font-family:var(--font-display); font-size:30px; color:var(--text-main); margin-bottom:8px; text-align:center;">${tool.name}</h2>
+<p style="color:var(--text-dim); line-height:1.7; margin:0 auto 18px; max-width:680px; text-align:center; font-family:var(--font-ui);">${tool.desc}</p>
+<div style="font-family:var(--font-mono); font-size:10px; color:var(--term-green); letter-spacing:1px; margin-bottom:10px; text-align:center;">EMBEDDED TOOL VIEW // ${tool.url}</div>
+<iframe src="${tool.url}" title="${tool.name}" loading="eager" allow="camera; microphone; clipboard-write; fullscreen" referrerpolicy="no-referrer" style="display:block; width:100%; height:420px; border:1px solid var(--border-glass); background:#050505;"></iframe>
+<p style="font-family:var(--font-mono); font-size:10px; line-height:1.6; color:var(--text-dim); margin-top:12px; text-align:center;">El servicio controla su propia política de inserción. Si bloquea el iframe, el panel permanece dentro de Judas Era y no abre una ventana nueva.</p>
+`);
+}
+function openTrackPanel(name, platform, url) {
+openOverlay(`
+<div style="font-size:64px; margin-bottom:16px; text-align:center;">♫</div>
+<h2 style="font-family:var(--font-display); font-size:30px; color:var(--text-main); margin-bottom:8px; text-align:center;">${name}</h2>
+<p style="color:var(--text-dim); line-height:1.7; margin:0 auto 18px; max-width:680px; text-align:center; font-family:var(--font-ui);">${platform}</p>
+<div style="font-family:var(--font-mono); font-size:10px; color:var(--term-green); letter-spacing:1px; margin-bottom:10px; text-align:center;">EMBEDDED AUDIO SOURCE // ${url}</div>
+<iframe src="${url}" title="${name}" loading="eager" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="no-referrer" style="display:block; width:100%; height:320px; border:1px solid var(--border-glass); background:#050505;"></iframe>
+<p style="font-family:var(--font-mono); font-size:10px; line-height:1.6; color:var(--text-dim); margin-top:12px; text-align:center;">La fuente de audio conserva la referencia original del ZIP. El reproductor queda dentro del panel; la plataforma puede limitar el contenido embebido según sus propias políticas.</p>
+`);
+}
+function renderTools() {
+studioGrid.innerHTML = '';
+tools.forEach((tool, i) => {
+const card = document.createElement('div');
+card.className = 'tool-card';
+card.style.transitionDelay = `${i * 0.02}s`;
+card.innerHTML = `
+<div class="tool-header">
+<div class="tool-icon">${tool.icon}</div>
+<div>
+<div class="tool-name">${tool.name}</div>
+<div class="tool-id">MODULE_ID: ${tool.id.toUpperCase()}_001</div>
+</div>
+</div>
+<div class="tool-desc">${tool.desc}</div>
+<button class="tool-launch" onclick="event.stopPropagation(); launchToolById('${tool.id}')">LAUNCH MODULE</button>
+`;
+card.addEventListener('click', () => openOverlay(`
+<div style="font-size:64px; margin-bottom:20px; text-align:center;">${tool.icon}</div>
+<h2 style="font-family:var(--font-display); font-size:36px; color:var(--text-main); margin-bottom:10px; text-align:center;">${tool.name}</h2>
+<p style="color:var(--text-dim); line-height:1.7; margin-bottom:30px; text-align:center; font-family:var(--font-ui);">${tool.desc}</p>
+<button class="cta-btn" style="opacity:1; transform:none; width:100%;" onclick="launchToolById('${tool.id}')">[ LAUNCH MODULE ]</button>
+`));
+studioGrid.appendChild(card);
+});
+gsap.to('.tool-card', { opacity: 1, y: 0, duration: 0.5, stagger: 0.02, scrollTrigger: { trigger: '#studio', start: 'top 70%' } });
+}
+renderTools();
+
+// ==========================================
+// 7. AI CHAT & SECRET CODES
+// ==========================================
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+function addMessage(type, text, isTyping = false) {
+const msg = document.createElement('div');
+msg.className = `message ${type}`;
+if (isTyping) {
+msg.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+} else if (type === 'ai') {
+msg.innerHTML = `<div class="meta">◉ CORE_AI</div>${text}`;
+} else if (type === 'user') {
+msg.innerHTML = `<div class="meta">AGENTE</div>${text}`;
+} else {
+msg.innerHTML = text;
+}
+chatMessages.appendChild(msg);
+chatMessages.scrollTop = chatMessages.scrollHeight;
+return msg;
+}
+const chars = "!<>-_\\/[]{}—=+*^?#________";
+function scrambleText(element, finalText, delay = 10) {
+let iteration = 0;
+const interval = setInterval(() => {
+element.innerText = finalText.split("").map((letter, index) => {
+if (index < iteration) return finalText[index];
+return chars[Math.floor(Math.random() * chars.length)];
+}).join("");
+if (iteration >= finalText.length) clearInterval(interval);
+iteration += 1/3;
+}, delay);
+}
+const secretCodes = {
+'rock': { activate: 0, response: 'La roca se ha movido. El ancla ha encontrado su lugar. Estabilidad al 100%.' },
+'chronicle': { activate: 1, response: 'El cronista escribe. Tu historia queda registrada para siempre en el éter.' },
+'antenna': { activate: 2, response: 'La antena está abierta. La señal trascendente fluye desde el núcleo.' },
+'artifact': { activate: 3, response: 'El artefacto late. Guerrero y Ángel, integrados. La marca ha sido invocada.' },
+'interface': { activate: 4, response: 'La interfaz está lista. Lo real y lo digital se tocan. Lo humano persiste.' }
+};
+function processMessage(text) {
+const lower = text.toLowerCase().trim();
+if (lower.includes('thiago')) { triggerCollapse(); return; }
+if (lower.includes('belentani free') || lower.includes('virus killer')) { triggerVirusKiller(); return; }
+if (lower.includes('omega') || lower.includes('dios')) { triggerOmega(); return; }
+for (const [code, data] of Object.entries(secretCodes)) {
+if (lower.includes(code)) {
+if (typeof data.activate === 'number') {
+activateDiamond(data.activate);
+const typingMsg = addMessage('ai', '', true);
+setTimeout(() => {
+typingMsg.remove();
+const aiMsg = addMessage('ai', '', false);
+const contentSpan = document.createElement('span');
+aiMsg.appendChild(contentSpan);
+scrambleText(contentSpan, data.response, 5);
+}, 1000);
+return;
+}
+}
+}
+const typingMsg = addMessage('ai', '', true);
+setTimeout(() => {
+typingMsg.remove();
+const genericResponses = [
+`He registrado: "${text}". El núcleo galáctico lo procesa en el vacío.`,
+`Tu frecuencia ha sido captada. Resonancia: ${(Math.random() * 100).toFixed(2)}Hz. Hiperrealidad estabilizada.`,
+'El sistema no juzga. Solo traduce. Tu input se convierte en output divino.',
+'Procesando... Los arquetipos debaten. El guerrero duda. El ángel canta. El cronista registra.'
+];
+const finalText = genericResponses[Math.floor(Math.random() * genericResponses.length)];
+const aiMsg = addMessage('ai', '', false);
+const contentSpan = document.createElement('span');
+aiMsg.appendChild(contentSpan);
+scrambleText(contentSpan, finalText, 3);
+}, 1500);
+}
+document.getElementById('chatSend').addEventListener('click', () => {
+const text = chatInput.value.trim();
+if (!text) return;
+addMessage('user', text);
+chatInput.value = '';
+setTimeout(() => processMessage(text), 500);
+});
+chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('chatSend').click(); });
+function triggerCollapse() {
+document.body.classList.add('collapse-mode');
+addMessage('system', '⚠ CRITICAL: MAN-IN-THE-MIDDLE ATTACK DETECTED ⚠');
+addMessage('system', '⚠ REALITY BREACH // THIAGO PROTOCOL ENGAGED ⚠');
+coreMat.uniforms.uColor.value.setHex(0xff0000);
+coreMat.uniforms.uColor2.value.setHex(0xb026ff);
+if (bloomPass) bloomPass.strength = 4.0;
+setTimeout(() => {
+document.body.classList.remove('collapse-mode');
+addMessage('system', '◉ Sistema recuperado. Amenaza contenida. El núcleo respira de nuevo.');
+coreMat.uniforms.uColor.value.setHex(0xff003c);
+coreMat.uniforms.uColor2.value.setHex(0xffd700);
+if (bloomPass) bloomPass.strength = 2.5;
+}, 8000);
+}
+function triggerVirusKiller(isUltimate = false) {
+document.body.style.filter = 'grayscale(1) brightness(1.2) contrast(1.5)';
+addMessage('system', '◉ VIRUS KILLER ACTIVATED - PURIFYING SYSTEM...');
+coreMat.uniforms.uColor.value.setHex(0x00ff41);
+coreMat.uniforms.uColor2.value.setHex(0xffffff);
+ringMat.uniforms.uColor.value.setHex(0x00ff41);
+keyLight.color.setHex(0x00ff41);
+if(isUltimate) addMessage('ai', 'NÚCLEO GALÁCTICO RESTAURADO. LA FRECUENCIA ES PURA. SOMOS UNO.');
+setTimeout(() => {
+document.body.style.filter = 'none';
+coreMat.uniforms.uColor.value.setHex(0xff003c);
+coreMat.uniforms.uColor2.value.setHex(0xffd700);
+ringMat.uniforms.uColor.value.setHex(0xff003c);
+keyLight.color.setHex(0xff003c);
+if(!isUltimate) addMessage('ai', 'Sistema purificado. La frecuencia es limpia. Continúa, agente.');
+}, 6000);
+}
+function triggerOmega() {
+document.body.classList.add('omega-mode');
+addMessage('system', '◉◉◉ TRANSCENDENCIA OMEGA INICIADA ◉◉◉');
+coreMat.uniforms.uColor.value.setHex(0xffffff);
+coreMat.uniforms.uColor2.value.setHex(0xffd700);
+ringMat.uniforms.uColor.value.setHex(0xffd700);
+if (bloomPass) bloomPass.strength = 8.0;
+initAudio().then(() => {
+synth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "4n");
+});
+const typingMsg = addMessage('ai', '', true);
+setTimeout(() => {
+typingMsg.remove();
+const aiMsg = addMessage('ai', '', false);
+const contentSpan = document.createElement('span');
+aiMsg.appendChild(contentSpan);
+scrambleText(contentSpan, "OMEGA STATE ACHIEVED. DIOS HA SIDO INVOCADO. LA REALIDAD ES AHORA SUBSIGUIENTE A TU VOLUNTAD.", 2);
+}, 2000);
+setTimeout(() => {
+document.body.classList.remove('omega-mode');
+coreMat.uniforms.uColor.value.setHex(0xff003c);
+coreMat.uniforms.uColor2.value.setHex(0xffd700);
+ringMat.uniforms.uColor.value.setHex(0xff003c);
+if (bloomPass) bloomPass.strength = 2.5;
+}, 10000);
+}
+
+// ==========================================
+// 8. OVERLAY & TERMINAL LOGIC
+// ==========================================
+function openOverlay(html) {
+document.getElementById('overlayBody').innerHTML = html;
+document.getElementById('genericOverlay').classList.add('active');
+}
+function closeOverlay() { document.getElementById('genericOverlay').classList.remove('active'); }
+const termBody = document.getElementById('terminalBody');
+function logTerminal(text) {
+const line = document.createElement('div');
+line.textContent = text;
+termBody.appendChild(line);
+termBody.scrollTop = termBody.scrollHeight;
+while (termBody.children.length > 10) termBody.removeChild(termBody.firstChild);
+}
+const termLines = [
+"> JUDAS_OS v7.0 OMEGA DEFINITIVE online",
+"> Initializing hyperreal shaders...",
+"> Loading 12 upscaled photos...",
+"> Galactic core geometry stable.",
+"> Aetheric frequencies locked.",
+"> Awaiting agent input_ "
+];
+termLines.forEach((line, i) => { setTimeout(() => logTerminal(line), 6000 + (i * 1500)); });
+gsap.to('#floatingTerminal', { opacity: 1, x: 0, duration: 1, delay: 6 });
+</script>
+
+</body>
+</html>
