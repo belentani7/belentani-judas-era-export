@@ -4475,6 +4475,14 @@
         gsap.to('#floatingTerminal', { opacity: 1, x: 0, duration: 1, delay: 2 });
 
     </script>
+
+<!-- FRONT-UPGRADE: Lenis -->
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+<script>
+(function(){try{
+if(window.Lenis){var l=new Lenis({duration:1.1});var r=function(t){l.raf(t);requestAnimationFrame(r)};requestAnimationFrame(r);}
+}catch(e){}})();
+</script>
 </body>
 </html>
 BELENTANI
